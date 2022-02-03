@@ -6,6 +6,8 @@ import core.DImage;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class SetCardFilter implements PixelFilter {
 
@@ -13,16 +15,22 @@ public class SetCardFilter implements PixelFilter {
     @Override
     public DImage processImage(DImage img) {
         img = CardDetector(img);
-        //img.setPixels(floodSearch(BWFilter(img), 50, 150));
+        //img.setPixels(floodSearch(BWFilter(img), 230, 400));
+        //img = floodSearchDisplayer(cleanse(img));
         return img;
     }
 
-    private DImage CardDetector(DImage img) {
-        short[][] bwPixels = BWFilter(img);
+    private short[][] cleanse(DImage img) {
+        short[][] bwPixels = BWFilter(img, 160);
         DImage BWImage = new DImage(bwPixels[0].length, bwPixels.length);
         BWImage.setPixels(bwPixels);
-        DImage blur = blur(BWImage, 3);
-        short[][] out = blur.getBWPixelGrid();
+        DImage blur = blur(BWImage, 2);
+
+        return blur.getBWPixelGrid();
+    }
+
+    private DImage CardDetector(DImage img) {
+        short[][] out = cleanse(img);
 
         ArrayList<Card> cards = floodSearchHelper(out);
 
@@ -30,24 +38,107 @@ public class SetCardFilter implements PixelFilter {
         short[][] green = img.getGreenChannel();
         short[][] blue = img.getBlueChannel();
 
-        // Do stuff with color channels here
+        Collections.sort(cards, new Comparator<Card>() {
+            @Override
+            public int compare(Card o1, Card o2) {
+                return o1.getArea() - o2.getArea();
+            }
+        });
+
+        // remove "cards" that are too small to actually be cards;
+
+        int medianCardIndex = 0;
+        int maxJump = 0;
+
+        for (int i = 0; i < cards.size() - 1; i++) {
+            System.out.println(cards.get(i).getArea());
+            int jump = cards.get(i + 1).getArea() - cards.get(i).getArea();
+            if (jump > maxJump) {
+                medianCardIndex = i;
+                maxJump = jump;
+            }
+        }
+
+        for (int i = 0; i <= medianCardIndex; i++) {
+            cards.remove(0);
+        }
+
+        /*
+        int medianCardSize = cards.get(medianCardIndex + 1).getArea();
+
+        for (int i = 0; i < cards.size(); i++) {
+            if (cards.get(i).getArea() < medianCardSize * 0.3) {
+                cards.remove(i);
+                i--;
+            }
+        }
+         */
+
+        // indicate the center of the cards we found
+
+        System.out.println();
 
         for (Card card: cards) {
+            System.out.println(card.getArea());
+
             int x = (int) card.getCenter().getX();
             int y = (int) card.getCenter().getY();
 
             for (int i = -3; i <= 3; i++) {
                 for (int j = -3; j <= 3; j++) {
-                    red[x+i][y+j] = 255;
-                    green[x+i][y+j] = 0;
+                    red[x+i][y+j] = 0;
+                    green[x+i][y+j] = 255;
                     blue[x+j][y+j] = 0;
                 }
             }
         }
 
+        System.out.println(cards.size() + " cards found! (you probably want 12)");
+
         img.setColorChannels(red, green, blue);
         return img;
 
+    }
+
+    private DImage floodSearchDisplayer(short[][] pixels) {
+        ArrayList<short[][]> cardPixels = new ArrayList<>();
+        short[][] out = new short[pixels.length][pixels[0].length];
+
+        for (int r = 0; r < pixels.length; r++) {
+            for (int c = 0; c < pixels[0].length; c++) {
+                if (pixels[r][c] == 255) {
+                    short[][] searchedPixels = floodSearch(pixels, r, c);
+                    cardPixels.add(searchedPixels);
+                }
+            }
+        }
+
+        for (short[][] card : cardPixels) {
+            int count = 0;
+            for (int r = 0; r < card.length; r++) {
+                for (int c = 0; c < card[0].length; c++) {
+                    if (card[r][c] == 255) {
+                        count++;
+                    }
+                }
+            }
+
+            for (int r = 0; r < card.length; r++) {
+                for (int c = 0; c < card[0].length; c++) {
+                    if (card[r][c] == 255) {
+                        if (count > 5000) {
+                            out[r][c] = 255;
+                        } else {
+                            out[r][c] = 180;
+                        }
+                    }
+                }
+            }
+        }
+
+        DImage image = new DImage(pixels[0].length, pixels.length);
+        image.setPixels(out);
+        return image;
     }
 
     private ArrayList<Card> floodSearchHelper(short[][] pixels) {
@@ -101,7 +192,6 @@ public class SetCardFilter implements PixelFilter {
                     q.add(new Point(pX - 1, pY));
                     q.add(new Point(pX, pY + 1));
                     q.add(new Point(pX, pY - 1));
-
                 }
             }
         }
@@ -120,9 +210,9 @@ public class SetCardFilter implements PixelFilter {
 
         for (int r = 0; r < red.length; r++) {
             for (int c = 0; c < red[0].length; c++) {
-                int redSum = 0;
-                int greenSum = 0;
-                int blueSum = 0;
+                long redSum = 0;
+                long greenSum = 0;
+                long blueSum = 0;
                 int count = 0;
                 for (int i = -radius; i <= radius; i++) {
                     for (int j = -radius; j <= radius; j++) {
@@ -132,7 +222,7 @@ public class SetCardFilter implements PixelFilter {
                         if (pX >= 0 && pX < red.length && pY >= 0 && pY < red[0].length) {
                             redSum += red[pX][pY];
                             greenSum += green[pX][pY];
-                            blueSum += blue[pX][pX];
+                            blueSum += blue[pX][pY];
                             count++;
                         }
                     }
@@ -148,8 +238,8 @@ public class SetCardFilter implements PixelFilter {
                 blueSum = Math.max(0, Math.min(blueSum, 255));
 
                 redOut[r][c] = (short) redSum;
-                greenOut[r][c] = (short) redSum;
-                blueOut[r][c] = (short) redSum;
+                greenOut[r][c] = (short) greenSum;
+                blueOut[r][c] = (short) blueSum;
             }
         }
 
@@ -158,7 +248,7 @@ public class SetCardFilter implements PixelFilter {
         return image;
     }
 
-    private short[][] BWFilter(DImage img) {
+    private short[][] BWFilter(DImage img, int threshold) {
         short[][] red = img.getRedChannel();
         short[][] green = img.getGreenChannel();
         short[][] blue = img.getBlueChannel();
@@ -174,7 +264,6 @@ public class SetCardFilter implements PixelFilter {
                 int blueDist = 255 - blue[r][c];
 
                 double dist = Math.sqrt(redDist * redDist + greenDist * greenDist + blueDist * blueDist);
-                double threshold = 130;
                 if (dist > threshold) {
                     out[r][c] = 0;
                 } else {
