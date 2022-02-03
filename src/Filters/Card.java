@@ -1,5 +1,6 @@
 package Filters;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 
 public class Card {
@@ -11,14 +12,14 @@ public class Card {
         ROUNDEDRECT, DIAMOND, BEAN
     }
 
-    private Point2D tlCorner, trCorner, blCorner, brCorner, center;
+    private Point tlCorner, trCorner, blCorner, brCorner, center;
     private int area;
     private int shapes;
 
     private Shape shape;
     private Color color;
 
-    public Card(Point2D center, int area) {
+    public Card(Point center, int area) {
         this.center = center;
         this.area = area;
     }
@@ -48,7 +49,7 @@ public class Card {
         return area;
     }
 
-    public void setCenter(Point2D center) {
+    public void setCenter(Point center) {
         this.center = center;
     }
 
