@@ -24,7 +24,6 @@ public class Card {
         this.area = area;
     }
 
-
     public Point2D getTlCorner() {
         return tlCorner;
     }
@@ -69,5 +68,26 @@ public class Card {
         this.shape = shape;
     }
 
+    public void setCorners(Point tlCorner, Point trCorner, Point blCorner, Point brCorner) {
+        this.tlCorner = tlCorner;
+        this.trCorner = trCorner;
+        this.blCorner = blCorner;
+        this.brCorner = brCorner;
+    }
 
+    public void setTlCorner(Point tlCorner) {
+        this.tlCorner = tlCorner;
+    }
+
+    public void setTrCorner(Point trCorner) {
+        this.trCorner = trCorner;
+    }
+
+    public void setBlCorner(Point blCorner) {
+        this.blCorner = blCorner;
+    }
+
+    public void setBrCorner(Point brCorner) {
+        this.brCorner = brCorner;
+    }
 }

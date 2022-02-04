@@ -2,22 +2,61 @@ package Filters;
 
 import Interfaces.PixelFilter;
 import core.DImage;
+import javafx.geometry.Point3D;
 
 import java.awt.*;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
 public class SetCardFilter implements PixelFilter {
 
+    private ArrayList<Card> cards;
 
     @Override
     public DImage processImage(DImage img) {
-        img = CardDetector(img);
+        DImage image = cardPositionDetector(img);
+        image = cardColorDetector(img, cards);
         //img.setPixels(floodSearch(BWFilter(img), 230, 400));
         //img = floodSearchDisplayer(cleanse(img));
-        return img;
+        return image;
+    }
+
+    private DImage cardColorDetector(DImage img, ArrayList<Card> cards) {
+        for (Card card : cards) {
+            int count = 0;
+            for (int i = (int) card.getTlCorner().getX(); i < card.getTrCorner().getX(); i++) {
+                for (int j = (int) card.getTrCorner().getY(); j < card.getBrCorner().getY(); j++) {
+
+
+                    count++;
+                }
+            }
+            System.out.println(count);
+        }
+    }
+
+    private void colorDetector(DImage img, Point startXY, Point endXY, Card card) {
+        short[][] red = img.getRedChannel();
+        short[][] green = img.getGreenChannel();
+        short[][] blue = img.getBlueChannel();
+
+        for (int i = (int) startXY.getX(); i < endXY.getX(); i++) {
+            for (int j = (int) startXY.getY(); j < endXY.getY(); j++) {
+                if () {
+                    card.setColor(Card.Color.RED);
+                    return;
+                }
+            }
+        }
+    }
+
+    private double colorDistance(short red1, short green1, short blue1, short red2, short green2, short blue2) {
+        double dr = red1 - red2;
+        double dg = green1 - green2;
+        double db = blue1 - blue2;
+
+        return Math.sqrt()
     }
 
     private short[][] cleanse(DImage img) {
@@ -30,10 +69,10 @@ public class SetCardFilter implements PixelFilter {
         return BWImage.getBWPixelGrid();
     }
 
-    private DImage CardDetector(DImage img) {
+    private DImage CardPositionDetector(DImage img) {
         short[][] out = cleanse(img);
 
-        ArrayList<Card> cards = floodSearchHelper(out);
+        cards = floodSearchHelper(out);
 
         short[][] red = img.getRedChannel();
         short[][] green = img.getGreenChannel();
@@ -54,7 +93,7 @@ public class SetCardFilter implements PixelFilter {
         for (int i = 0; i < cards.size() - 1; i++) {
             System.out.println(cards.get(i).getArea());
             int jump = cards.get(i + 1).getArea() - cards.get(i).getArea();
-            if (jump > maxJump && jump > cards.get(i + 1).getArea() * 0.5) {
+            if (jump > maxJump && jump > cards.get(i + 1).getArea() * 0.5) { // magic numbers
                 medianCardIndex = i;
                 maxJump = jump;
             }
@@ -92,12 +131,24 @@ public class SetCardFilter implements PixelFilter {
                     blue[x+j][y+j] = 0;
                 }
             }
+
+            x = (int) card.getTlCorner().getX();
+            y = (int) card.getTlCorner().getY();
+
+            for (int i = -3; i <= 3; i++) {
+                for (int j = -3; j <= 3; j++) {
+                    red[x+i][y+j] = 0;
+                    green[x+i][y+j] = 255;
+                    blue[x+j][y+j] = 0;
+                }
+            }
         }
 
         System.out.println(cards.size() + " cards found! (you probably want 12)");
 
-        img.setColorChannels(red, green, blue);
-        return img;
+        DImage image = new DImage(img.getWidth(), img.getHeight());
+        image.setColorChannels(red, green, blue);
+        return image;
 
     }
 
@@ -165,8 +216,41 @@ public class SetCardFilter implements PixelFilter {
 
                     averageX = averageX / count;
                     averageY = averageY / count;
+                    Point topLeft = new Point((int) averageX, (int) averageY);
+                    Point topRight = new Point((int) averageX, (int) averageY);
+                    Point bottomLeft = new Point((int) averageX, (int) averageY);
+                    Point bottomRight = new Point((int) averageX, (int) averageY);
 
-                    cards.add(new Card(new Point((int) averageX, (int) averageY), count));
+                    for (int i = 0; i < searchedPixels.length; i++) {
+                        for (int j = 0; j < searchedPixels[0].length; j++) {
+                            if (searchedPixels[i][j] == 255) {
+                                if (i > averageX && j > averageY) {
+                                    if (bottomRight.distance(averageX, averageY) < Point.distance(averageX, averageY, i, j)) {
+                                        bottomRight = new Point(i, j);
+                                    }
+                                }
+                                if (i > averageX && j < averageY) {
+                                    if (bottomLeft.distance(averageX, averageY) < Point.distance(averageX, averageY, i, j)) {
+                                        bottomLeft = new Point(i, j);
+                                    }
+                                }
+                                if (i < averageX && j > averageY) {
+                                    if (topRight.distance(averageX, averageY) < Point.distance(averageX, averageY, i, j)) {
+                                        topRight = new Point(i, j);
+                                    }
+                                }
+                                if (i < averageX && j < averageY) {
+                                    if (topLeft.distance(averageX, averageY) < Point.distance(averageX, averageY, i, j)) {
+                                        topLeft = new Point(i, j);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Card card = new Card(new Point((int) averageX, (int) averageY), count);
+                    card.setCorners(topLeft, topRight, bottomLeft, bottomRight);
+                    cards.add(card);
                 }
             }
         }
