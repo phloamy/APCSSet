@@ -5,6 +5,7 @@ import core.DImage;
 import javafx.geometry.Point3D;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -24,26 +25,54 @@ public class SetCardFilter implements PixelFilter {
 
     private DImage cardColorDetector(DImage img, ArrayList<Card> cards) {
         for (Card card : cards) {
-            int count = 0;
-            for (int i = (int) card.getTlCorner().getX(); i < card.getTrCorner().getX(); i++) {
-                for (int j = (int) card.getTrCorner().getY(); j < card.getBrCorner().getY(); j++) {
+            colorDetector(img, card, card.getTlCorner(), card.getBrCorner());
 
+            System.out.println(card.getColor());
 
-                    count++;
-                }
+            switch (card.getColor()) {
+                case RED:
+                    addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 200, 40, 40);
+                    break;
+                case GREEN:
+                    addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 0, 255, 0);
+                    break;
+                case PURPLE:
+                    addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 120, 0, 120);
+                    break;
             }
-            System.out.println(count);
         }
+        return img;
     }
 
-    private void colorDetector(DImage img, Point startXY, Point endXY, Card card) {
+    private void colorDetector(DImage img, Card card, Point2D startXY, Point2D endXY) {
         short[][] red = img.getRedChannel();
         short[][] green = img.getGreenChannel();
         short[][] blue = img.getBlueChannel();
 
+        double threshold = 150;
+
+        System.out.println(startXY.getX());
+        System.out.println(startXY.getY());
+        System.out.println(endXY.getX());
+        System.out.println(endXY.getY());
+
         for (int i = (int) startXY.getX(); i < endXY.getX(); i++) {
             for (int j = (int) startXY.getY(); j < endXY.getY(); j++) {
-                if () {
+                short r = red[i][j];
+                short g = green[i][j];
+                short b = blue[i][j];
+
+                System.out.println(colorDistance(r, g, b, 255, 255, 255));
+
+                if (colorDistance(r, g, b, 200, 40, 40) < threshold) {
+                    card.setColor(Card.Color.RED);
+                    return;
+                }
+                if (colorDistance(r, g, b, 10, 120, 50) < threshold) {
+                    card.setColor(Card.Color.GREEN);
+                    return;
+                }
+                if (colorDistance(r, g, b, 100, 50, 80) < threshold) {
                     card.setColor(Card.Color.RED);
                     return;
                 }
@@ -51,12 +80,30 @@ public class SetCardFilter implements PixelFilter {
         }
     }
 
-    private double colorDistance(short red1, short green1, short blue1, short red2, short green2, short blue2) {
+    private double colorDistance(int red1, int green1, int blue1, int red2, int green2, int blue2) {
         double dr = red1 - red2;
         double dg = green1 - green2;
         double db = blue1 - blue2;
 
-        return Math.sqrt()
+        return Math.sqrt(dr * dr + dg * dg + db * db);
+    }
+
+    private DImage addDot(DImage img, int x, int y, int radius, int r, int g, int b) {
+        short[][] red = img.getRedChannel();
+        short[][] green = img.getGreenChannel();
+        short[][] blue = img.getBlueChannel();
+
+        for (int i = -radius; i < radius; i++) {
+            for (int j = -radius; j < radius; j++) {
+                red[x + i][y + j] = (short) r;
+                green[x + i][y + j] = (short) g;
+                blue[x + i][y + j] = (short) b;
+            }
+        }
+
+        DImage image = new DImage(img.getWidth(), img.getHeight());
+        image.setColorChannels(red, green, blue);
+        return image;
     }
 
     private short[][] cleanse(DImage img) {
@@ -69,7 +116,7 @@ public class SetCardFilter implements PixelFilter {
         return BWImage.getBWPixelGrid();
     }
 
-    private DImage CardPositionDetector(DImage img) {
+    private DImage cardPositionDetector(DImage img) {
         short[][] out = cleanse(img);
 
         cards = floodSearchHelper(out);
