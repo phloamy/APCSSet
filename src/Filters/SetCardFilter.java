@@ -21,12 +21,13 @@ public class SetCardFilter implements PixelFilter {
     }
 
     private short[][] cleanse(DImage img) {
-        short[][] bwPixels = BWFilter(img, 160);
+        DImage blur = blur(img, 4);
+        short[][] bwPixels = BWFilter(blur, 240);
         DImage BWImage = new DImage(bwPixels[0].length, bwPixels.length);
         BWImage.setPixels(bwPixels);
-        DImage blur = blur(BWImage, 2);
+        //blur = blur(BWImage, 2);
 
-        return blur.getBWPixelGrid();
+        return BWImage.getBWPixelGrid();
     }
 
     private DImage CardDetector(DImage img) {
@@ -53,7 +54,7 @@ public class SetCardFilter implements PixelFilter {
         for (int i = 0; i < cards.size() - 1; i++) {
             System.out.println(cards.get(i).getArea());
             int jump = cards.get(i + 1).getArea() - cards.get(i).getArea();
-            if (jump > maxJump) {
+            if (jump > maxJump && jump > cards.get(i + 1).getArea() * 0.5) {
                 medianCardIndex = i;
                 maxJump = jump;
             }
