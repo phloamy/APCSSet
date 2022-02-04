@@ -324,7 +324,7 @@ public class DisplayWindow extends PApplet {
     }
 
     private PixelFilter loadNewFilter() {
-        String name = JOptionPane.showInputDialog("Type the name of your processImage class (without the .java)");
+        String name = "SetCardFilter";
         PixelFilter f = null;
         try {
             Class c = Class.forName("Filters." + name);
