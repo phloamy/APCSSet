@@ -17,17 +17,20 @@ public class SetCardFilter implements PixelFilter {
     @Override
     public DImage processImage(DImage img) {
         DImage image = cardPositionDetector(img);
-        image = cardColorDetector(img, cards);
+        cardColorDetector(img, cards);
+        image = addIndicators(img, cards);
         //img.setPixels(floodSearch(BWFilter(img), 230, 400));
         //img = floodSearchDisplayer(cleanse(img));
         return image;
     }
 
-    private DImage cardColorDetector(DImage img, ArrayList<Card> cards) {
+    private DImage addIndicators(DImage img, ArrayList<Card> cards) {
         for (Card card : cards) {
-            colorDetector(img, card, card.getTlCorner(), card.getBrCorner());
 
-            System.out.println(card.getColor());
+            addDot(img, (int) card.getTlCorner().getX(), (int) card.getTlCorner().getY(), 3, 255, 255, 255);
+            addDot(img, (int) card.getTrCorner().getX(), (int) card.getTrCorner().getY(), 3, 255, 255, 255);
+            addDot(img, (int) card.getBlCorner().getX(), (int) card.getBlCorner().getY(), 3, 255, 255, 255);
+            addDot(img, (int) card.getBrCorner().getX(), (int) card.getBrCorner().getY(), 3, 255, 255, 255);
 
             switch (card.getColor()) {
                 case RED:
@@ -41,7 +44,16 @@ public class SetCardFilter implements PixelFilter {
                     break;
             }
         }
+
         return img;
+    }
+
+    private void cardColorDetector(DImage img, ArrayList<Card> cards) {
+        for (Card card : cards) {
+            colorDetector(img, card, card.getTlCorner(), card.getBrCorner());
+
+            System.out.println(card.getColor());
+        }
     }
 
     private void colorDetector(DImage img, Card card, Point2D startXY, Point2D endXY) {
@@ -49,31 +61,30 @@ public class SetCardFilter implements PixelFilter {
         short[][] green = img.getGreenChannel();
         short[][] blue = img.getBlueChannel();
 
-        double threshold = 150;
+        double margin = 0.3;
+        int padding = 10;
 
         System.out.println(startXY.getX());
         System.out.println(startXY.getY());
         System.out.println(endXY.getX());
         System.out.println(endXY.getY());
 
-        for (int i = (int) startXY.getX(); i < endXY.getX(); i++) {
-            for (int j = (int) startXY.getY(); j < endXY.getY(); j++) {
+        for (int i = (int) startXY.getX() + padding; i < endXY.getX() - padding; i++) {
+            for (int j = (int) startXY.getY() + padding; j < endXY.getY() - padding; j++) {
                 short r = red[i][j];
                 short g = green[i][j];
                 short b = blue[i][j];
 
-                System.out.println(colorDistance(r, g, b, 255, 255, 255));
-
-                if (colorDistance(r, g, b, 200, 40, 40) < threshold) {
+                if (r > g * (1 + margin) && r > b * (1 + margin)) {
                     card.setColor(Card.Color.RED);
                     return;
                 }
-                if (colorDistance(r, g, b, 10, 120, 50) < threshold) {
+                if (g > r * (1 + margin) && g > b * (1 + margin)) {
                     card.setColor(Card.Color.GREEN);
                     return;
                 }
-                if (colorDistance(r, g, b, 100, 50, 80) < threshold) {
-                    card.setColor(Card.Color.RED);
+                if ((r + b) / 2 > g * (1 + margin)) {
+                    card.setColor(Card.Color.PURPLE);
                     return;
                 }
             }
@@ -93,17 +104,22 @@ public class SetCardFilter implements PixelFilter {
         short[][] green = img.getGreenChannel();
         short[][] blue = img.getBlueChannel();
 
-        for (int i = -radius; i < radius; i++) {
-            for (int j = -radius; j < radius; j++) {
-                red[x + i][y + j] = (short) r;
-                green[x + i][y + j] = (short) g;
-                blue[x + i][y + j] = (short) b;
+        for (int i = -radius; i <= radius; i++) {
+            for (int j = -radius; j <= radius; j++) {
+                if (Math.abs(i) == radius || Math.abs(j) == radius) {
+                    red[x + i][y + j] = 0;
+                    green[x + i][y + j] = 0;
+                    blue[x + i][y + j] = 0;
+                } else {
+                    red[x + i][y + j] = (short) r;
+                    green[x + i][y + j] = (short) g;
+                    blue[x + i][y + j] = (short) b;
+                }
             }
         }
 
-        DImage image = new DImage(img.getWidth(), img.getHeight());
-        image.setColorChannels(red, green, blue);
-        return image;
+        img.setColorChannels(red, green, blue);
+        return img;
     }
 
     private short[][] cleanse(DImage img) {
@@ -138,7 +154,6 @@ public class SetCardFilter implements PixelFilter {
         int maxJump = 0;
 
         for (int i = 0; i < cards.size() - 1; i++) {
-            System.out.println(cards.get(i).getArea());
             int jump = cards.get(i + 1).getArea() - cards.get(i).getArea();
             if (jump > maxJump && jump > cards.get(i + 1).getArea() * 0.5) { // magic numbers
                 medianCardIndex = i;
@@ -160,36 +175,6 @@ public class SetCardFilter implements PixelFilter {
             }
         }
          */
-
-        // indicate the center of the cards we found
-
-        System.out.println();
-
-        for (Card card: cards) {
-            System.out.println(card.getArea());
-
-            int x = (int) card.getCenter().getX();
-            int y = (int) card.getCenter().getY();
-
-            for (int i = -3; i <= 3; i++) {
-                for (int j = -3; j <= 3; j++) {
-                    red[x+i][y+j] = 0;
-                    green[x+i][y+j] = 255;
-                    blue[x+j][y+j] = 0;
-                }
-            }
-
-            x = (int) card.getTlCorner().getX();
-            y = (int) card.getTlCorner().getY();
-
-            for (int i = -3; i <= 3; i++) {
-                for (int j = -3; j <= 3; j++) {
-                    red[x+i][y+j] = 0;
-                    green[x+i][y+j] = 255;
-                    blue[x+j][y+j] = 0;
-                }
-            }
-        }
 
         System.out.println(cards.size() + " cards found! (you probably want 12)");
 
