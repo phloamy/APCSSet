@@ -14,7 +14,7 @@ public class Card {
 
     private Point tlCorner, trCorner, blCorner, brCorner, center;
     private int area;
-    private int shapes;
+    private int number;
 
     private Shape shape;
     private Color color;
@@ -90,4 +90,13 @@ public class Card {
     public void setBrCorner(Point brCorner) {
         this.brCorner = brCorner;
     }
+
+    public int getNumber() {
+        return number;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
 }
