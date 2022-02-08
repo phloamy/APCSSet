@@ -16,12 +16,12 @@ public class SetCardFilter implements PixelFilter {
 
     @Override
     public DImage processImage(DImage img) {
-        DImage image = cardPositionDetector(img);
+        cardPositionDetector(img, cards);
         cardColorDetector(img, cards);
-        image = addIndicators(img, cards);
+        addIndicators(img, cards);
         //img.setPixels(floodSearch(BWFilter(img), 230, 400));
         //img = floodSearchDisplayer(cleanse(img));
-        return image;
+        return img;
     }
 
     private DImage addIndicators(DImage img, ArrayList<Card> cards) {
@@ -64,11 +64,6 @@ public class SetCardFilter implements PixelFilter {
         double margin = 0.3;
         int padding = 10;
 
-        System.out.println(startXY.getX());
-        System.out.println(startXY.getY());
-        System.out.println(endXY.getX());
-        System.out.println(endXY.getY());
-
         for (int i = (int) startXY.getX() + padding; i < endXY.getX() - padding; i++) {
             for (int j = (int) startXY.getY() + padding; j < endXY.getY() - padding; j++) {
                 short r = red[i][j];
@@ -91,37 +86,6 @@ public class SetCardFilter implements PixelFilter {
         }
     }
 
-    private double colorDistance(int red1, int green1, int blue1, int red2, int green2, int blue2) {
-        double dr = red1 - red2;
-        double dg = green1 - green2;
-        double db = blue1 - blue2;
-
-        return Math.sqrt(dr * dr + dg * dg + db * db);
-    }
-
-    private DImage addDot(DImage img, int x, int y, int radius, int r, int g, int b) {
-        short[][] red = img.getRedChannel();
-        short[][] green = img.getGreenChannel();
-        short[][] blue = img.getBlueChannel();
-
-        for (int i = -radius; i <= radius; i++) {
-            for (int j = -radius; j <= radius; j++) {
-                if (Math.abs(i) == radius || Math.abs(j) == radius) {
-                    red[x + i][y + j] = 0;
-                    green[x + i][y + j] = 0;
-                    blue[x + i][y + j] = 0;
-                } else {
-                    red[x + i][y + j] = (short) r;
-                    green[x + i][y + j] = (short) g;
-                    blue[x + i][y + j] = (short) b;
-                }
-            }
-        }
-
-        img.setColorChannels(red, green, blue);
-        return img;
-    }
-
     private short[][] cleanse(DImage img) {
         DImage blur = blur(img, 4);
         short[][] bwPixels = BWFilter(blur, 240);
@@ -132,7 +96,7 @@ public class SetCardFilter implements PixelFilter {
         return BWImage.getBWPixelGrid();
     }
 
-    private DImage cardPositionDetector(DImage img) {
+    private void cardPositionDetector(DImage img, ArrayList<Card> cards) {
         short[][] out = cleanse(img);
 
         cards = floodSearchHelper(out);
@@ -177,11 +141,6 @@ public class SetCardFilter implements PixelFilter {
          */
 
         System.out.println(cards.size() + " cards found! (you probably want 12)");
-
-        DImage image = new DImage(img.getWidth(), img.getHeight());
-        image.setColorChannels(red, green, blue);
-        return image;
-
     }
 
     private DImage floodSearchDisplayer(short[][] pixels) {
@@ -316,6 +275,29 @@ public class SetCardFilter implements PixelFilter {
         return out;
     }
 
+    private DImage addDot(DImage img, int x, int y, int radius, int r, int g, int b) {
+        short[][] red = img.getRedChannel();
+        short[][] green = img.getGreenChannel();
+        short[][] blue = img.getBlueChannel();
+
+        for (int i = -radius; i <= radius; i++) {
+            for (int j = -radius; j <= radius; j++) {
+                if (Math.abs(i) == radius || Math.abs(j) == radius) {
+                    red[x + i][y + j] = 0;
+                    green[x + i][y + j] = 0;
+                    blue[x + i][y + j] = 0;
+                } else {
+                    red[x + i][y + j] = (short) r;
+                    green[x + i][y + j] = (short) g;
+                    blue[x + i][y + j] = (short) b;
+                }
+            }
+        }
+
+        img.setColorChannels(red, green, blue);
+        return img;
+    }
+
     private DImage blur(DImage img, int radius) {
         short[][] red = img.getRedChannel();
         short[][] green = img.getGreenChannel();
@@ -390,6 +372,14 @@ public class SetCardFilter implements PixelFilter {
         }
 
         return out;
+    }
+
+    private double colorDistance(int red1, int green1, int blue1, int red2, int green2, int blue2) {
+        double dr = red1 - red2;
+        double dg = green1 - green2;
+        double db = blue1 - blue2;
+
+        return Math.sqrt(dr * dr + dg * dg + db * db);
     }
 }
 
