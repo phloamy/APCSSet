@@ -16,13 +16,13 @@ public class SetCardFilter implements PixelFilter {
 
     @Override
     public DImage processImage(DImage img) {
-        cardPositionDetector(img, cards);
+        cards = cardPositionDetector(img);
         cardColorDetector(img, cards);
         //img.setPixels(floodSearch(BWFilter(img), 230, 400));
         //img = floodSearchDisplayer(cleanse(img));
         DImage floodSearchedImg = floodSearchDisplayer(BWFilter(img, 200));
         cardNumberDetector(floodSearchedImg, cards);
-        addIndicators(img, cards);
+        img = addIndicators(img, cards);
         return img;
     }
 
@@ -74,6 +74,10 @@ public class SetCardFilter implements PixelFilter {
                 case PURPLE:
                     addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 120, 0, 120);
                     break;
+            }
+
+            for (int i = 0; i < card.getNumber(); i++) {
+                addDot(img, (int) card.getCenter().getX() + (i * 20), (int) card.getCenter().getY() - 50, 5, 0, 0, 0);
             }
         }
 
@@ -128,7 +132,9 @@ public class SetCardFilter implements PixelFilter {
         return BWImage.getBWPixelGrid();
     }
 
-    private void cardPositionDetector(DImage img, ArrayList<Card> cards) {
+    private ArrayList<Card> cardPositionDetector(DImage img) {
+        ArrayList<Card> cards;
+
         short[][] out = cleanse(img);
 
         cards = floodSearchHelper(out);
@@ -173,6 +179,7 @@ public class SetCardFilter implements PixelFilter {
          */
 
         System.out.println(cards.size() + " cards found! (you probably want 12)");
+        return cards;
     }
 
     private DImage floodSearchDisplayer(short[][] pixels) {
