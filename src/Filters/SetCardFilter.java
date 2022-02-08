@@ -18,10 +18,42 @@ public class SetCardFilter implements PixelFilter {
     public DImage processImage(DImage img) {
         cardPositionDetector(img, cards);
         cardColorDetector(img, cards);
-        addIndicators(img, cards);
         //img.setPixels(floodSearch(BWFilter(img), 230, 400));
         //img = floodSearchDisplayer(cleanse(img));
+        DImage floodSearchedImg = floodSearchDisplayer(BWFilter(img, 200));
+        cardNumberDetector(floodSearchedImg, cards);
+        addIndicators(img, cards);
         return img;
+    }
+
+    private void cardNumberDetector(DImage img, ArrayList<Card> cards) {
+        short[][] grid = img.getBWPixelGrid();
+
+        for (Card card: cards) {
+
+            boolean isBlack = false;
+            int count = 0;
+
+            for (int i = (int) card.getTlCorner().getY() + 20; i < card.getTrCorner().getY() - 20; i++) {
+                int j = (int) (card.getTlCorner().getX() + card.getBlCorner().getX())/2;
+
+                if (isBlack) {
+                    if (grid[j][i] == 255) {
+                        isBlack = false;
+                    }
+                } else {
+                    if (grid[j][i] == 0) {
+                        count += 1;
+                        isBlack = true;
+                    }
+                }
+
+
+            }
+            card.setNumber(count);
+
+            System.out.println(count);
+        }
     }
 
     private DImage addIndicators(DImage img, ArrayList<Card> cards) {
