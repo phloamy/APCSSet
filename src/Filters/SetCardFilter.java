@@ -22,8 +22,71 @@ public class SetCardFilter implements PixelFilter {
         //img = floodSearchDisplayer(cleanse(img));
         DImage floodSearchedImg = floodSearchDisplayer(BWFilter(img, 200));
         cardNumberDetector(floodSearchedImg, cards);
+        cardShapeDetector(floodSearchedImg, cards);
         img = addIndicators(img, cards);
+
         return img;
+    }
+
+    private void cardShapeDetector (DImage img, ArrayList<Card> cards) {
+        short[][] grid = img.getBWPixelGrid();
+
+        int padding = 8;
+        int topBotDiff = 23;
+        for (Card card: cards) {
+
+            int topCount = 0;
+            int midCount = 0;
+
+            int firstTop = -2;
+            int firstMid = -2;
+
+            for (int i = (int) card.getTlCorner().getY() + padding; i < card.getTrCorner().getY() - padding; i++) {
+                int middle = (int) (card.getTlCorner().getX() + card.getBlCorner().getX())/2;
+                int top = (int) ((card.getTlCorner().getX() + card.getBlCorner().getX())/2) - topBotDiff;
+                if (grid[top][i] == 0) {
+                    topCount ++;
+                    if (firstTop == -2) {
+                        firstTop = i;
+                    }
+                }
+                if (grid[middle][i] == 0) {
+                    midCount ++;
+                    if (firstMid == -2) {
+                        firstMid = i;
+                    }
+                }
+            }
+            boolean isBlack = false;
+            int count = 0;
+            for (int i = (int) card.getTlCorner().getX() + padding/4; i < card.getBlCorner().getX() - padding/4; i++) {
+                if (!isBlack) {
+                    if (grid[i][firstMid] == 0) {
+                        isBlack = true;
+                        count += 1;
+                    }
+                } else {
+                    if (grid[i][firstMid] == 255) {
+                        isBlack = false;
+
+                    }
+                }
+            }
+
+            midCount = midCount / card.getNumber();
+            topCount = topCount / card.getNumber();
+
+
+            System.out.println(firstMid - firstTop);
+            if ((midCount - topCount) > 4) {
+                card.setShape(Card.Shape.DIAMOND);
+
+            } else if (count > 1) {
+                card.setShape(Card.Shape.BEAN);
+            } else {
+                card.setShape(Card.Shape.ROUNDEDRECT);
+            }
+        }
     }
 
     private void cardNumberDetector(DImage img, ArrayList<Card> cards) {
@@ -34,7 +97,8 @@ public class SetCardFilter implements PixelFilter {
             boolean isBlack = false;
             int count = 0;
 
-            for (int i = (int) card.getTlCorner().getY() + 20; i < card.getTrCorner().getY() - 20; i++) {
+            for (int i = (int) card.getTlCorner().getY() + 8; i < card.getTrCorner().getY() - 8
+            ; i++) {
                 int j = (int) (card.getTlCorner().getX() + card.getBlCorner().getX())/2;
 
                 if (isBlack) {
@@ -58,20 +122,29 @@ public class SetCardFilter implements PixelFilter {
 
     private DImage addIndicators(DImage img, ArrayList<Card> cards) {
         for (Card card : cards) {
+            int padding = 8;
+            int topBotDiff = 23;
+            for (int i = (int) card.getTlCorner().getY() + padding; i < card.getTrCorner().getY() - padding; i++) {
+                int middle = (int) (card.getTlCorner().getX() + card.getBlCorner().getX()) / 2;
+                int top = (int) ((card.getTlCorner().getX() + card.getBlCorner().getX()) / 2) - topBotDiff;
+
+                addDot(img, middle, i, 1, 0, 255, 0 );
+                addDot(img, top, i, 1, 0, 255, 0 );
+            }
 
             addDot(img, (int) card.getTlCorner().getX(), (int) card.getTlCorner().getY(), 3, 255, 255, 255);
             addDot(img, (int) card.getTrCorner().getX(), (int) card.getTrCorner().getY(), 3, 255, 255, 255);
             addDot(img, (int) card.getBlCorner().getX(), (int) card.getBlCorner().getY(), 3, 255, 255, 255);
             addDot(img, (int) card.getBrCorner().getX(), (int) card.getBrCorner().getY(), 3, 255, 255, 255);
 
-            switch (card.getColor()) {
-                case RED:
+            switch (card.getShape()) {
+                case BEAN: // red
                     addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 200, 40, 40);
                     break;
-                case GREEN:
+                case DIAMOND: //green
                     addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 0, 255, 0);
                     break;
-                case PURPLE:
+                case ROUNDEDRECT: //purple
                     addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 120, 0, 120);
                     break;
             }
@@ -211,7 +284,7 @@ public class SetCardFilter implements PixelFilter {
                         if (count > 5000) {
                             out[r][c] = 255;
                         } else {
-                            out[r][c] = 180;
+                            out[r][c] = 0;
                         }
                     }
                 }
