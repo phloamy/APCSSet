@@ -11,10 +11,14 @@ public class Card {
     public enum Shape {
         ROUNDEDRECT, DIAMOND, BEAN
     }
+    public enum Consistency {
+        FILLED, HOLLOW, STRIPED
+    }
 
     private Point tlCorner, trCorner, blCorner, brCorner, center;
     private int area;
     private int number;
+    private Consistency consistency;
 
     private Shape shape;
     private Color color;
@@ -99,4 +103,11 @@ public class Card {
         this.number = number;
     }
 
+    public Consistency getConsistency() {
+        return consistency;
+    }
+
+    public void setConsistency(Consistency consistency) {
+        this.consistency = consistency;
+    }
 }
