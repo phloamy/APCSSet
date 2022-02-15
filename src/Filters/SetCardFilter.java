@@ -378,23 +378,7 @@ public class SetCardFilter implements PixelFilter {
                 if (pixels[r][c] == 255) {
                     short[][] searchedPixels = floodSearch(pixels, r, c);
 
-                    double averageRow = 0;
-                    double averageCol = 0;
-                    int count = 0;
-                    for (int i = 0; i < searchedPixels.length; i++) {
-                        for (int j = 0; j < searchedPixels[0].length; j++) {
-                            if (searchedPixels[i][j] == 255) {
-                                averageRow += i;
-                                averageCol += j;
-                                count++;
-                            }
-                        }
-                    }
-
-                    averageRow = averageRow / count;
-                    averageCol = averageCol / count;
-
-                    Card card = new Card(new Location((int) averageRow, (int) averageCol), count);
+                    Card card = findCardCenterAndArea(searchedPixels);
                     findCorners(searchedPixels, card);
                     cards.add(card);
                 }
@@ -402,6 +386,26 @@ public class SetCardFilter implements PixelFilter {
         }
 
         return cards;
+    }
+
+    private Card findCardCenterAndArea(short[][] pixels) {
+        double averageRow = 0;
+        double averageCol = 0;
+        int count = 0;
+        for (int r = 0; r < pixels.length; r++) {
+            for (int c = 0; c < pixels[0].length; c++) {
+                if (pixels[r][c] == 255) {
+                    averageRow += r;
+                    averageCol += c;
+                    count++;
+                }
+            }
+        }
+
+        averageRow = averageRow / count;
+        averageCol = averageCol / count;
+
+        return new Card(new Location((int) averageRow, (int) averageCol), count);
     }
 
     private void findCorners(short[][] pixels, Card card) {
@@ -429,7 +433,6 @@ public class SetCardFilter implements PixelFilter {
                     if ((centerRow - row) + (centerCol - col) > (centerRow - topLeft.getRow()) + (centerCol - topLeft.getCol())) {
                         topLeft = new Location(row, col);
                     }
-
                     /*
                     if (row > averageRow && col > averageCol) {
                         if (bottomRight.distance(averageRow, averageCol) < Point.distance(averageRow, averageCol, row, col)) {
