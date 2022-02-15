@@ -79,6 +79,22 @@ public class Card {
         this.brCorner = brCorner;
     }
 
+    public void setTlCorner(Location tlCorner) {
+        this.tlCorner = tlCorner;
+    }
+
+    public void setTrCorner(Location trCorner) {
+        this.trCorner = trCorner;
+    }
+
+    public void setBlCorner(Location blCorner) {
+        this.blCorner = blCorner;
+    }
+
+    public void setBrCorner(Location brCorner) {
+        this.brCorner = brCorner;
+    }
+
     public int getNumber() {
         return number;
     }
