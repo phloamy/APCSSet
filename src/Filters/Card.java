@@ -15,7 +15,7 @@ public class Card {
         FILLED, HOLLOW, STRIPED
     }
 
-    private Point tlCorner, trCorner, blCorner, brCorner, center;
+    private Location tlCorner, trCorner, blCorner, brCorner, center;
     private int area;
     private int number;
     private Consistency consistency;
@@ -23,28 +23,28 @@ public class Card {
     private Shape shape;
     private Color color;
 
-    public Card(Point center, int area) {
+    public Card(Location center, int area) {
         this.center = center;
         this.area = area;
     }
 
-    public Point2D getTlCorner() {
+    public Location getTlCorner() {
         return tlCorner;
     }
 
-    public Point2D getTrCorner() {
+    public Location getTrCorner() {
         return trCorner;
     }
 
-    public Point2D getBlCorner() {
+    public Location getBlCorner() {
         return blCorner;
     }
 
-    public Point2D getBrCorner() {
+    public Location getBrCorner() {
         return brCorner;
     }
 
-    public Point2D getCenter() {
+    public Location getCenter() {
         return center;
     }
 
@@ -52,7 +52,7 @@ public class Card {
         return area;
     }
 
-    public void setCenter(Point center) {
+    public void setCenter(Location center) {
         this.center = center;
     }
 
@@ -72,26 +72,10 @@ public class Card {
         this.shape = shape;
     }
 
-    public void setCorners(Point tlCorner, Point trCorner, Point blCorner, Point brCorner) {
+    public void setCorners(Location tlCorner, Location trCorner, Location blCorner, Location brCorner) {
         this.tlCorner = tlCorner;
         this.trCorner = trCorner;
         this.blCorner = blCorner;
-        this.brCorner = brCorner;
-    }
-
-    public void setTlCorner(Point tlCorner) {
-        this.tlCorner = tlCorner;
-    }
-
-    public void setTrCorner(Point trCorner) {
-        this.trCorner = trCorner;
-    }
-
-    public void setBlCorner(Point blCorner) {
-        this.blCorner = blCorner;
-    }
-
-    public void setBrCorner(Point brCorner) {
         this.brCorner = brCorner;
     }
 
