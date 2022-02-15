@@ -2,10 +2,7 @@ package Filters;
 
 import Interfaces.PixelFilter;
 import core.DImage;
-import javafx.geometry.Point3D;
 
-import java.awt.*;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -25,10 +22,60 @@ public class SetCardFilter implements PixelFilter {
         DImage thresholded = threshold(img.getBWPixelGrid(), 160);
         detectFilled(thresholded, cards, 20);
         cardShapeDetector(floodSearchedImg, cards);
-        addIndicators(img, cards);
+        solveCards(img, cards);
         return img;
     }
+    private void solveCards (DImage img, ArrayList<Card> cards) {
+        for (int i = 0; i < cards.size(); i++) {
+            for (int j = i+1; j < cards.size(); j++) {
+                Card idealCard = new Card(new Location(0, 0), 0);
+                Card card1 = cards.get(i);
+                Card card2 = cards.get(j);
 
+                if (card1.getNumber() == card2.getNumber()) {
+                    idealCard.setNumber(card1.getNumber());
+                } else {
+                    idealCard.setNumber(6 - card1.getNumber() - card2.getNumber());
+                }
+
+                if (card1.getConsistencyInt() == card2.getConsistencyInt()) {
+                    idealCard.setConsistencyInt(card1.getConsistencyInt());
+                } else {
+                    idealCard.setConsistencyInt(3 - card1.getConsistencyInt() - card2.getConsistencyInt());
+                }
+
+                if (card1.getShapeInt() == card2.getShapeInt()) {
+                    idealCard.setShapeInt(card1.getShapeInt());
+                } else {
+                    idealCard.setShapeInt(3 - card1.getShapeInt() - card2.getShapeInt());
+                }
+
+                if (card1.getColorInt() == card2.getColorInt()) {
+                    idealCard.setColorInt(card1.getColorInt());
+                } else {
+                    idealCard.setColorInt(3 - card1.getColorInt() - card2.getColorInt());
+                }
+
+                for (int k = j+1; k < cards.size(); k++) {
+                    Card card3 = cards.get(k);
+                    if(     card3.getColor().equals(idealCard.getColor()) &&
+                            card3.getNumber() == (idealCard.getNumber()) &&
+                            card3.getShape().equals(idealCard.getShape()) &&
+                            card3.getConsistency().equals(idealCard.getConsistency())) {
+
+                        ArrayList<Card> winningSet = new ArrayList<>();
+                        winningSet.add(card1);
+                        winningSet.add(card2);
+                        winningSet.add(card3);
+
+                        addIndicators(img, winningSet);
+
+                    }
+                }
+
+            }
+        }
+    }
     private void detectFilled(DImage img, ArrayList<Card> cards, int margin) {
         short[][] red = img.getRedChannel();
         short[][] green = img.getGreenChannel();
@@ -231,7 +278,6 @@ public class SetCardFilter implements PixelFilter {
 
     private void cardColorDetector(DImage img, ArrayList<Card> cards) {
         for (Card card : cards) {
-
             colorDetector(img, card, card.getTlCorner(), card.getBrCorner());
 
             System.out.println(card.getColor());

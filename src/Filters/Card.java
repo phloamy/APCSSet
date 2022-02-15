@@ -107,7 +107,37 @@ public class Card {
         return consistency;
     }
 
+
+
     public void setConsistency(Consistency consistency) {
         this.consistency = consistency;
+    }
+
+    public int getConsistencyInt() {
+        System.out.println("consistency " + consistency + " is " + consistency.ordinal());
+        return consistency.ordinal();
+
+    }
+
+    public void setConsistencyInt(int ordinal) {
+        this.consistency = Consistency.values()[ordinal];
+    }
+
+    public int getShapeInt() {
+        return shape.ordinal();
+
+    }
+
+    public void setShapeInt(int ordinal) {
+        this.shape = Shape.values()[ordinal];
+    }
+
+    public int getColorInt() {
+        return color.ordinal();
+
+    }
+
+    public void setColorInt(int ordinal) {
+        this.color = Color.values()[ordinal];
     }
 }

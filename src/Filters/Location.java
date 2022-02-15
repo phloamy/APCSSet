@@ -8,6 +8,11 @@ public class Location {
         this.col = col;
     }
 
+    public Location(double row, double col) {
+        this.row = (int) row;
+        this.col = (int) col;
+    }
+
     public int getRow() {
         return row;
     }
