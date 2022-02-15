@@ -2,10 +2,7 @@ package Filters;
 
 import Interfaces.PixelFilter;
 import core.DImage;
-import javafx.geometry.Point3D;
 
-import java.awt.*;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,7 +25,22 @@ public class SetCardFilter implements PixelFilter {
         addIndicators(img, cards);
         return img;
     }
+    private void solveCards (ArrayList<Card> cards) {
+        for (int i = 0; i < cards.size(); i++) {
+            for (int j = i; j < cards.size(); j++) {
+                Card idealCard = new Card(new Location(0, 0), 0);
+                Card card1 = cards.get(i);
+                Card card2 = cards.get(j);
 
+                if (card1.getNumber() == card2.getNumber()) {
+                    idealCard.setNumber(card1.getNumber());
+                } else {
+                    //idealCard.setNumber();
+                }
+
+            }
+        }
+    }
     private void detectFilled(DImage img, ArrayList<Card> cards, int margin) {
         short[][] red = img.getRedChannel();
         short[][] green = img.getGreenChannel();
@@ -43,11 +55,11 @@ public class SetCardFilter implements PixelFilter {
             int j = 0;
 
             if (card.getNumber() == 2) {
-                j = (int) (card.getTlCorner().getY() + ((card.getCenter().getY() - card.getTlCorner().getY()) * 0.6));
+                j = (int) (card.getTlCorner().getCol() + ((card.getCenter().getCol() - card.getTlCorner().getCol()) * 0.6));
             } else {
-                j = (int) card.getCenter().getY();
+                j = (int) card.getCenter().getCol();
             }
-            for (int i = (int) card.getTlCorner().getX() + padding; i < card.getBlCorner().getX() - padding; i++) {
+            for (int i = (int) card.getTlCorner().getRow() + padding; i < card.getBlCorner().getRow() - padding; i++) {
                 short r = red[i][j];
                 short g = green[i][j];
                 short b = blue[i][j];
@@ -85,9 +97,9 @@ public class SetCardFilter implements PixelFilter {
             int firstTop = -2;
             int firstMid = -2;
 
-            for (int i = (int) card.getTlCorner().getY() + padding; i < card.getTrCorner().getY() - padding; i++) {
-                int middle = (int) (card.getTlCorner().getX() + card.getBlCorner().getX())/2;
-                int top = (int) ((card.getTlCorner().getX() + card.getBlCorner().getX())/2) - topBotDiff;
+            for (int i = (int) card.getTlCorner().getCol() + padding; i < card.getTrCorner().getCol() - padding; i++) {
+                int middle = (int) (card.getTlCorner().getRow() + card.getBlCorner().getRow())/2;
+                int top = (int) ((card.getTlCorner().getRow() + card.getBlCorner().getRow())/2) - topBotDiff;
                 if (grid[top][i] == 0) {
                     topCount ++;
                     if (firstTop == -2) {
@@ -103,7 +115,7 @@ public class SetCardFilter implements PixelFilter {
             }
             boolean isBlack = false;
             int count = 0;
-            for (int i = (int) card.getTlCorner().getX() + padding/4; i < card.getBlCorner().getX() - padding/4; i++) {
+            for (int i = (int) card.getTlCorner().getRow() + padding/4; i < card.getBlCorner().getRow() - padding/4; i++) {
                 if (!isBlack) {
                     if (grid[i][firstMid] == 0) {
                         isBlack = true;
@@ -141,9 +153,9 @@ public class SetCardFilter implements PixelFilter {
             boolean isBlack = false;
             int count = 0;
 
-            for (int i = (int) card.getTlCorner().getY() + 8; i < card.getTrCorner().getY() - 8
+            for (int i = (int) card.getTlCorner().getCol() + 8; i < card.getTrCorner().getCol() - 8
             ; i++) {
-                int j = (int) (card.getTlCorner().getX() + card.getBlCorner().getX())/2;
+                int j = (int) (card.getTlCorner().getRow() + card.getBlCorner().getRow())/2;
 
                 if (isBlack) {
                     if (grid[j][i] == 255) {
@@ -169,60 +181,60 @@ public class SetCardFilter implements PixelFilter {
             /*
             int padding = 8;
             int topBotDiff = 23;
-            for (int i = (int) card.getTlCorner().getY() + padding; i < card.getTrCorner().getY() - padding; i++) {
-                int middle = (int) (card.getTlCorner().getX() + card.getBlCorner().getX()) / 2;
-                int top = (int) ((card.getTlCorner().getX() + card.getBlCorner().getX()) / 2) - topBotDiff;
+            for (int i = (int) card.getTlCorner().getCol() + padding; i < card.getTrCorner().getCol() - padding; i++) {
+                int middle = (int) (card.getTlCorner().getRow() + card.getBlCorner().getRow()) / 2;
+                int top = (int) ((card.getTlCorner().getRow() + card.getBlCorner().getRow()) / 2) - topBotDiff;
 
                 addDot(img, middle, i, 1, 0, 255, 0 );
                 addDot(img, top, i, 1, 0, 255, 0 );
             }
              */
 
-            //addDot(img,(int) card.getCenter().getX(), (int) (card.getTlCorner().getY() + ((card.getCenter().getY() - card.getTlCorner().getY()) * 0.7)), 10, 180, 45, 180);
+            //addDot(img,(int) card.getCenter().getRow(), (int) (card.getTlCorner().getCol() + ((card.getCenter().getCol() - card.getTlCorner().getCol()) * 0.7)), 10, 180, 45, 180);
 
-            addDot(img, (int) card.getTlCorner().getX(), (int) card.getTlCorner().getY(), 3, 255, 255, 255);
-            addDot(img, (int) card.getTrCorner().getX(), (int) card.getTrCorner().getY(), 3, 255, 255, 255);
-            addDot(img, (int) card.getBlCorner().getX(), (int) card.getBlCorner().getY(), 3, 255, 255, 255);
-            addDot(img, (int) card.getBrCorner().getX(), (int) card.getBrCorner().getY(), 3, 255, 255, 255);
+            addDot(img, (int) card.getTlCorner().getRow(), (int) card.getTlCorner().getCol(), 3, 255, 255, 255);
+            addDot(img, (int) card.getTrCorner().getRow(), (int) card.getTrCorner().getCol(), 3, 255, 255, 255);
+            addDot(img, (int) card.getBlCorner().getRow(), (int) card.getBlCorner().getCol(), 3, 255, 255, 255);
+            addDot(img, (int) card.getBrCorner().getRow(), (int) card.getBrCorner().getCol(), 3, 255, 255, 255);
 
             switch (card.getColor()) {
                 case RED: // red
-                    addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 200, 40, 40);
+                    addDot(img, (int) card.getCenter().getRow(), (int) card.getCenter().getCol(), 3, 200, 40, 40);
                     break;
                 case GREEN: //green
-                    addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 0, 255, 0);
+                    addDot(img, (int) card.getCenter().getRow(), (int) card.getCenter().getCol(), 3, 0, 255, 0);
                     break;
                 case PURPLE: //purple
-                    addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY(), 3, 120, 0, 120);
+                    addDot(img, (int) card.getCenter().getRow(), (int) card.getCenter().getCol(), 3, 120, 0, 120);
                     break;
             }
 
             switch (card.getShape()) {
                 case BEAN: // up
-                    addDot(img, (int) card.getCenter().getX() - 20, (int) card.getCenter().getY() + 50, 3, 255, 0, 255);
+                    addDot(img, (int) card.getCenter().getRow() - 20, (int) card.getCenter().getCol() + 50, 3, 255, 0, 255);
                     break;
                 case DIAMOND: // middle
-                    addDot(img, (int) card.getCenter().getX(), (int) card.getCenter().getY() + 50, 3, 255, 255, 0);
+                    addDot(img, (int) card.getCenter().getRow(), (int) card.getCenter().getCol() + 50, 3, 255, 255, 0);
                     break;
                 case ROUNDEDRECT: //down
-                    addDot(img, (int) card.getCenter().getX() + 20, (int) card.getCenter().getY() + 50, 3, 0, 255, 255);
+                    addDot(img, (int) card.getCenter().getRow() + 20, (int) card.getCenter().getCol() + 50, 3, 0, 255, 255);
                     break;
             }
 
             switch (card.getConsistency()) {
                 case FILLED:
-                    addDot(img, (int) card.getCenter().getX() - 50, (int) card.getCenter().getY(), 5, 0, 0, 0);
+                    addDot(img, (int) card.getCenter().getRow() - 50, (int) card.getCenter().getCol(), 5, 0, 0, 0);
                     break;
                 case HOLLOW:
-                    addDot(img, (int) card.getCenter().getX() - 50, (int) card.getCenter().getY(), 5, 255, 255, 255);
+                    addDot(img, (int) card.getCenter().getRow() - 50, (int) card.getCenter().getCol(), 5, 255, 255, 255);
                     break;
                 case STRIPED:
-                    addDot(img, (int) card.getCenter().getX() - 50, (int) card.getCenter().getY(), 5, 150, 150, 150);
+                    addDot(img, (int) card.getCenter().getRow() - 50, (int) card.getCenter().getCol(), 5, 150, 150, 150);
                     break;
             }
 
             for (int i = 0; i < card.getNumber(); i++) {
-                addDot(img, (int) card.getCenter().getX() + (i * 20), (int) card.getCenter().getY() - 50, 5, 0, 0, 0);
+                addDot(img, (int) card.getCenter().getRow() + (i * 20), (int) card.getCenter().getCol() - 50, 5, 0, 0, 0);
             }
         }
 
@@ -237,7 +249,7 @@ public class SetCardFilter implements PixelFilter {
         }
     }
 
-    private void colorDetector(DImage img, Card card, Point2D startXY, Point2D endXY) {
+    private void colorDetector(DImage img, Card card, Location2D startXY, Location2D endXY) {
         short[][] red = img.getRedChannel();
         short[][] green = img.getGreenChannel();
         short[][] blue = img.getBlueChannel();
@@ -245,8 +257,8 @@ public class SetCardFilter implements PixelFilter {
         double margin = 0.3;
         int padding = 10;
 
-        for (int i = (int) startXY.getX() + padding; i < endXY.getX() - padding; i++) {
-            for (int j = (int) startXY.getY() + padding; j < endXY.getY() - padding; j++) {
+        for (int i = (int) startXY.getRow() + padding; i < endXY.getRow() - padding; i++) {
+            for (int j = (int) startXY.getCol() + padding; j < endXY.getCol() - padding; j++) {
                 short r = red[i][j];
                 short g = green[i][j];
                 short b = blue[i][j];
@@ -391,39 +403,40 @@ public class SetCardFilter implements PixelFilter {
 
                     averageX = averageX / count;
                     averageY = averageY / count;
-                    Point topLeft = new Point((int) averageX, (int) averageY);
-                    Point topRight = new Point((int) averageX, (int) averageY);
-                    Point bottomLeft = new Point((int) averageX, (int) averageY);
-                    Point bottomRight = new Point((int) averageX, (int) averageY);
+                    Location topLeft = new Location((int) averageX, (int) averageY);
+                    Location topRight = new Location((int) averageX, (int) averageY);
+                    Location bottomLeft = new Location((int) averageX, (int) averageY);
+                    Location bottomRight = new Location((int) averageX, (int) averageY);
+                    Location center = new Location(averageX, averageY)
 
                     for (int i = 0; i < searchedPixels.length; i++) {
                         for (int j = 0; j < searchedPixels[0].length; j++) {
                             if (searchedPixels[i][j] == 255) {
                                 if (i > averageX && j > averageY) {
-                                    if (bottomRight.distance(averageX, averageY) < Point.distance(averageX, averageY, i, j)) {
-                                        bottomRight = new Point(i, j);
+                                    if (bottomRight.signedDistance(averageX, averageY) < Location.signedDistance(averageX, averageY, i, j)) {
+                                        bottomRight = new Location(i, j);
                                     }
                                 }
                                 if (i > averageX && j < averageY) {
-                                    if (bottomLeft.distance(averageX, averageY) < Point.distance(averageX, averageY, i, j)) {
-                                        bottomLeft = new Point(i, j);
+                                    if (bottomLeft.signedDistance(averageX, averageY) < Location.signedDistance(averageX, averageY, i, j)) {
+                                        bottomLeft = new Location(i, j);
                                     }
                                 }
                                 if (i < averageX && j > averageY) {
-                                    if (topRight.distance(averageX, averageY) < Point.distance(averageX, averageY, i, j)) {
-                                        topRight = new Point(i, j);
+                                    if (topRight.signedDistance(averageX, averageY) < Location.signedDistance(averageX, averageY, i, j)) {
+                                        topRight = new Location(i, j);
                                     }
                                 }
                                 if (i < averageX && j < averageY) {
-                                    if (topLeft.distance(averageX, averageY) < Point.distance(averageX, averageY, i, j)) {
-                                        topLeft = new Point(i, j);
+                                    if (topLeft.signedDistance(averageX, averageY) < Location.signedDistance(averageX, averageY, i, j)) {
+                                        topLeft = new Location(i, j);
                                     }
                                 }
                             }
                         }
                     }
 
-                    Card card = new Card(new Point((int) averageX, (int) averageY), count);
+                    Card card = new Card(new Location((int) averageX, (int) averageY), count);
                     card.setCorners(topLeft, topRight, bottomLeft, bottomRight);
                     cards.add(card);
                 }
@@ -435,12 +448,12 @@ public class SetCardFilter implements PixelFilter {
 
     private short[][] floodSearch(short[][] pixels, int row, int col) {
         short[][] out = new short[pixels.length][pixels[0].length];
-        ArrayList<Point> q = new ArrayList<>();
-        q.add(new Point(row, col));
+        ArrayList<Location> q = new ArrayList<>();
+        q.add(new Location(row, col));
 
         while (q.size() > 0) {
-            int pX = (int) q.get(0).getX();
-            int pY = (int) q.get(0).getY();
+            int pX = (int) q.get(0).getRow();
+            int pY = (int) q.get(0).getCol();
             q.remove(0);
 
             if (pX >= 0 && pX < pixels.length && pY >= 0 && pY < pixels[0].length) {
@@ -448,10 +461,10 @@ public class SetCardFilter implements PixelFilter {
                     out[pX][pY] = 255;
                     pixels[pX][pY] = 0;
 
-                    q.add(new Point(pX + 1, pY));
-                    q.add(new Point(pX - 1, pY));
-                    q.add(new Point(pX, pY + 1));
-                    q.add(new Point(pX, pY - 1));
+                    q.add(new Location(pX + 1, pY));
+                    q.add(new Location(pX - 1, pY));
+                    q.add(new Location(pX, pY + 1));
+                    q.add(new Location(pX, pY - 1));
                 }
             }
         }
