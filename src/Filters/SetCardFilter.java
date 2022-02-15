@@ -22,7 +22,7 @@ public class SetCardFilter implements PixelFilter {
         DImage thresholded = threshold(img.getBWPixelGrid(), 160);
         detectFilled(thresholded, cards, 20);
         cardShapeDetector(floodSearchedImg, cards);
-        solveCards(img, cards);
+        addIndicators(img, cards);
         return img;
     }
     private void solveCards (DImage img, ArrayList<Card> cards) {
