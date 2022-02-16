@@ -22,6 +22,7 @@ public class SetCardFilter implements PixelFilter {
         DImage thresholded = threshold(img.getBWPixelGrid(), 160);
         detectFilled(thresholded, cards, 20);
         cardShapeDetector(floodSearchedImg, cards);
+        solveCards(img, cards);
         addIndicators(img, cards);
         return img;
     }
@@ -70,9 +71,9 @@ public class SetCardFilter implements PixelFilter {
 
                         addIndicators(img, winningSet);
 
+                        System.out.println("Winning set exist");
                     }
                 }
-
             }
         }
     }
@@ -227,10 +228,12 @@ public class SetCardFilter implements PixelFilter {
 
             //addDot(img,(int) card.getCenter().getX(), (int) (card.getTlCorner().getY() + ((card.getCenter().getY() - card.getTlCorner().getY()) * 0.7)), 10, 180, 45, 180);
 
+            /*
             addDot(img, (int) card.getTlCorner().getRow(), (int) card.getTlCorner().getCol(), 3, 255, 255, 255);
             addDot(img, (int) card.getTrCorner().getRow(), (int) card.getTrCorner().getCol(), 3, 255, 255, 255);
             addDot(img, (int) card.getBlCorner().getRow(), (int) card.getBlCorner().getCol(), 3, 255, 255, 255);
             addDot(img, (int) card.getBrCorner().getRow(), (int) card.getBrCorner().getCol(), 3, 255, 255, 255);
+             */
 
             switch (card.getColor()) {
                 case RED: // red
@@ -268,9 +271,12 @@ public class SetCardFilter implements PixelFilter {
                     break;
             }
 
+
+
             for (int i = 0; i < card.getNumber(); i++) {
-                addDot(img, (int) card.getCenter().getRow() + (i * 20), (int) card.getCenter().getCol() - 50, 5, 0, 0, 0);
+                addDot(img, (int) card.getCenter().getRow() + 50, (int) card.getCenter().getCol() + (int) ((i - (card.getNumber() / 2.0) + 0.5) * 73), 5, 0, 0, 0);
             }
+
         }
 
         return img;

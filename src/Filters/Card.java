@@ -114,7 +114,7 @@ public class Card {
     }
 
     public int getConsistencyInt() {
-        System.out.println("consistency " + consistency + " is " + consistency.ordinal());
+        //System.out.println("consistency " + consistency + " is " + consistency.ordinal());
         return consistency.ordinal();
 
     }
