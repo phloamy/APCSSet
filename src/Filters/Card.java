@@ -107,8 +107,6 @@ public class Card {
         return consistency;
     }
 
-
-
     public void setConsistency(Consistency consistency) {
         this.consistency = consistency;
     }

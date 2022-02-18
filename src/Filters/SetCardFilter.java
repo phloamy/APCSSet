@@ -335,7 +335,7 @@ public class SetCardFilter implements PixelFilter {
 
         short[][] out = cleanse(img);
 
-        cards = floodSearchHelper(out);
+        cards = findCards(out);
 
         short[][] red = img.getRedChannel();
         short[][] green = img.getGreenChannel();
@@ -422,7 +422,7 @@ public class SetCardFilter implements PixelFilter {
         return image;
     }
 
-    private ArrayList<Card> floodSearchHelper(short[][] pixels) {
+    private ArrayList<Card> findCards(short[][] pixels) {
         ArrayList<Card> cards = new ArrayList<>();
 
         for (int r = 0; r < pixels.length; r++) {
